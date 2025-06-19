@@ -8,4 +8,5 @@ To install it:
 
 Tested with Wordpress 6.8.1
 
+Developed by Iohann Tachy.
 Please give it a star in Github if this project was useful to you. Thanks!

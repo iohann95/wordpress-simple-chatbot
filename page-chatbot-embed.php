@@ -9,6 +9,7 @@ remove_action('wp_footer', 'simple_chatbot_interface', 10);
 <html <?php language_attributes(); ?>>
 <head>
   <meta charset="<?php bloginfo('charset'); ?>">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <?php wp_head(); ?>
   <style>
     html, body, #chatbot-container {

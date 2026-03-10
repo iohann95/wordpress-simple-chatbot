@@ -1,5 +1,7 @@
 ;(function(){
-  var CHATBOT_URL = 'https://YOURWEBSITE.com/chatbot-embed/';
+  var scriptSrc = document.currentScript.src;
+  var siteBase = scriptSrc.substring(0, scriptSrc.indexOf('/wp-content/'));
+  var CHATBOT_URL = siteBase + '/chatbot-embed/';
 
   var css = `
     #chatbot-container {
@@ -54,8 +56,6 @@
       background: #1a648c;
       transform: scale(1.05);
     }
-    
-  }
 
     @media (max-width: 480px) {
       #chatbot-container {

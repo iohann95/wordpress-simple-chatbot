@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Chatbot
+Plugin Name: Simple Chatbot
 Description: Simple Chatbot with decision-tree
-Version: 1.0
+Version: 1.1
 Author: Iohann Tachy
 */
 
@@ -22,6 +22,13 @@ function simple_chatbot_activate() {
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
+}
+
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'simple_chatbot_settings_link');
+function simple_chatbot_settings_link($links) {
+    $settings_link = '<a href="admin.php?page=simple-chatbot">Settings</a>';
+    array_unshift($links, $settings_link);
+    return $links;
 }
 
 add_action('admin_menu', 'simple_chatbot_menu');
@@ -135,6 +142,7 @@ function chatbot_admin_page() {
     echo '<tr><th>Button Color</th><td><input type="color" name="chatbot_btn_color" value="' . esc_attr(get_option('chatbot_btn_color', '#21759b')) . '"></td></tr>';
     echo '<tr><th>Chat Background</th><td><input type="color" name="chatbot_bg_color" value="' . esc_attr(get_option('chatbot_bg_color', '#f5f5f5')) . '"></td></tr>';
     echo '<tr><th>Font Size</th><td><input type="number" name="chatbot_font_size" min="10" max="24" value="' . esc_attr(get_option('chatbot_font_size', '14')) . '"> px</td></tr>';
+    echo '<tr><th>Header Text</th><td><input type="text" name="chatbot_btn_text" value="' . esc_attr(get_option('chatbot_btn_text', 'Need Help?')) . '"></td></tr>';
     echo '<tr><th>Home Title</th><td><input type="text" name="chatbot_home_title" value="' . esc_attr(get_option('chatbot_home_title', 'Hello, User!')) . '"></td></tr>';
     echo '<tr><th>Home Subtitle</th><td><input type="text" name="chatbot_home_subtitle" value="' . esc_attr(get_option('chatbot_home_subtitle', 'User Support')) . '"></td></tr>';
     echo '<tr><th>Start Text</th><td><input type="text" name="chatbot_home_button" value="' . esc_attr(get_option('chatbot_home_button', 'START CHAT')) . '"></td></tr>';
@@ -142,7 +150,9 @@ function chatbot_admin_page() {
     echo '<tr><th>Close Text</th><td><input type="text" name="chatbot_close_text" value="' . esc_attr(get_option('chatbot_close_text', 'Close Chat')) . '"></td></tr>';
     echo '</table>';
     submit_button('Save display settings');
-    echo '</form></div>';
+    echo '</form>';
+    echo '<script>document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("editing-node");if(e)e.scrollIntoView({behavior:"smooth",block:"center"});});</script>';
+    echo '</div>';
 }
 
 function find_node_by_id($nodes, $id) {
@@ -240,7 +250,7 @@ function render_node_tree(&$node_tree, $node_paths, $all_nodes, $parent_id = 0, 
         echo '</div></div>';
         
         if (isset($_POST['edit_node']) && intval($_POST['node_id']) == $node->id) {
-            echo '<form method="post" style="margin-top:10px;background:#fff8e5;padding:10px;border-radius:4px">';
+            echo '<form id="editing-node" method="post" style="margin-top:10px;background:#fff8e5;padding:10px;border-radius:4px">';
             echo '<input type="hidden" name="node_id" value="' . $node->id . '">';
             echo '<textarea name="node_text" style="width:100%;height:80px">' . esc_textarea($node->node_text) . '</textarea>';
             echo '<p style="margin:5px 0 0"><input type="submit" name="update_node" class="button button-small" value="Update"></p>';
@@ -248,7 +258,7 @@ function render_node_tree(&$node_tree, $node_paths, $all_nodes, $parent_id = 0, 
         }
         
         if (isset($_POST['move_node']) && intval($_POST['node_id']) == $node->id) {
-            echo '<form method="post" style="margin-top:10px;background:#e3f2fd;padding:10px;border-radius:4px">';
+            echo '<form id="editing-node" method="post" style="margin-top:10px;background:#e3f2fd;padding:10px;border-radius:4px">';
             echo '<input type="hidden" name="node_id" value="' . $node->id . '">';
             echo '<p><label>Move to:<br>';
             echo '<select name="new_parent_id" style="width:100%">';
@@ -268,7 +278,7 @@ function render_node_tree(&$node_tree, $node_paths, $all_nodes, $parent_id = 0, 
         }
         
         if (isset($_POST['duplicate_node']) && intval($_POST['node_id']) == $node->id) {
-            echo '<form method="post" style="margin-top:10px;background:#f3e5f5;padding:10px;border-radius:4px">';
+            echo '<form id="editing-node" method="post" style="margin-top:10px;background:#f3e5f5;padding:10px;border-radius:4px">';
             echo '<input type="hidden" name="node_id" value="' . $node->id . '">';
             echo '<p><label>Duplicate to:<br>';
             echo '<select name="target_parent_id" style="width:100%">';
@@ -313,11 +323,10 @@ function simple_chatbot_scripts() {
     
     wp_localize_script('simple-chatbot-js', 'chatbotData', [
         'ajax_url' => admin_url('admin-ajax.php'),
-        'btn_text' => get_option('chatbot_btn_text', 'Need Help?'),
-        'home_title' => get_option('chatbot_home_title', 'Hello, User'),
+        'home_title' => get_option('chatbot_home_title', 'Hello, User!'),
         'home_subtitle' => get_option('chatbot_home_subtitle', 'User Support'),
-        'home_button' => get_option('chatbot_home_button', 'START SUPPORT'),
-        'restart_text' => get_option('chatbot_restart_text', 'Restart Conversation'),
+        'home_button' => get_option('chatbot_home_button', 'START CHAT'),
+        'restart_text' => get_option('chatbot_restart_text', 'Restart'),
         'close_text' => get_option('chatbot_close_text', 'Close Chat')
     ]);
 }
@@ -356,7 +365,7 @@ function chatbot_dynamic_css() {
     $bg_color = get_option('chatbot_bg_color', '#f5f5f5');
     $font_size = get_option('chatbot_font_size', '14');
     echo '<style>
-        #chatbot-container {
+        :root {
             --btn-color: ' . $btn_color . ';
             --bg-color: ' . $bg_color . ';
             --font-size: ' . $font_size . 'px;

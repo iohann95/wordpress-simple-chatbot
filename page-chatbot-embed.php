@@ -20,7 +20,6 @@ remove_action('wp_footer', 'simple_chatbot_interface', 10);
       margin: 0 !important;
       padding: 0 !important;
       display: block;
-      //background: transparent;
       background: var(--bg-color);
       box-sizing: border-box;
     }

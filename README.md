@@ -15,5 +15,4 @@ If you want to use the chat widget in a external website outside of your WordPre
 
 Tested with Wordpress 6.9.1
 
-Developed by Iohann Tachy.
 Please give it a star in Github if this project was useful to you. Thanks!

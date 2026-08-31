@@ -2,7 +2,7 @@
 /*
 Plugin Name: Simple Chatbot
 Description: Simple Chatbot with decision-tree
-Version: 1.1
+Version: 1.2
 Author: Iohann Tachy
 */
 
@@ -22,6 +22,21 @@ function simple_chatbot_activate() {
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
+}
+
+add_action('template_redirect', 'simple_chatbot_render_embed', 0);
+function simple_chatbot_render_embed() {
+    global $wp;
+
+    $request = isset($wp->request) ? trim($wp->request, '/') : '';
+    if ($request !== 'chatbot-embed') {
+        return;
+    }
+
+    status_header(200);
+    nocache_headers();
+    include plugin_dir_path(__FILE__) . 'page-chatbot-embed.php';
+    exit;
 }
 
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'simple_chatbot_settings_link');

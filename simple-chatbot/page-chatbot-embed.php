@@ -1,7 +1,6 @@
 <?php
 /*
-Template Name: Chatbot
-Description: Blank page rendering only the chatbot
+Blank page rendering only the chatbot (used by the embed iframe).
 */
 
 remove_action('wp_footer', 'simple_chatbot_interface', 10);

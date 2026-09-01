@@ -145,7 +145,12 @@ function chatbot_admin_page() {
     echo '</div>';
     
     echo '<div style="flex:2">';
-    echo '<h2>Tree</h2>';
+    echo '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:0.5em">';
+    echo '<h2 style="margin:0">Tree</h2>';
+    echo '<div style="display:flex;gap:4px">';
+    echo '<button type="button" class="button button-small" id="chatbot-collapse-all">Collapse All</button>';
+    echo '<button type="button" class="button button-small" id="chatbot-expand-all">Expand All</button>';
+    echo '</div></div>';
     render_node_tree($node_tree, $node_paths, $nodes);
     echo '</div></div>';
     
@@ -166,7 +171,47 @@ function chatbot_admin_page() {
     echo '</table>';
     submit_button('Save display settings');
     echo '</form>';
-    echo '<script>document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("editing-node");if(e)e.scrollIntoView({behavior:"smooth",block:"center"});});</script>';
+    echo <<<'JS'
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var editing = document.getElementById("editing-node");
+    if (editing) {
+        editing.scrollIntoView({behavior: "smooth", block: "center"});
+    }
+
+    function setNodeExpanded(btn, expanded) {
+        var children = btn.closest("li").querySelector(".chatbot-node-children");
+        if (!children) return;
+        children.style.display = expanded ? "" : "none";
+        btn.textContent = expanded ? "▼" : "▶";
+        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+    }
+
+    document.querySelectorAll(".chatbot-node-toggle").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            setNodeExpanded(btn, btn.getAttribute("aria-expanded") !== "true");
+        });
+    });
+
+    var collapseAll = document.getElementById("chatbot-collapse-all");
+    var expandAll = document.getElementById("chatbot-expand-all");
+    if (collapseAll) {
+        collapseAll.addEventListener("click", function() {
+            document.querySelectorAll(".chatbot-node-toggle").forEach(function(btn) {
+                setNodeExpanded(btn, false);
+            });
+        });
+    }
+    if (expandAll) {
+        expandAll.addEventListener("click", function() {
+            document.querySelectorAll(".chatbot-node-toggle").forEach(function(btn) {
+                setNodeExpanded(btn, true);
+            });
+        });
+    }
+});
+</script>
+JS;
     echo '</div>';
 }
 
@@ -236,9 +281,15 @@ function render_node_tree(&$node_tree, $node_paths, $all_nodes, $parent_id = 0, 
     
     echo '<ul style="list-style:none;margin-left:' . ($depth * 20) . 'px">';
     foreach ($node_tree[$parent_id] as $node) {
+        $has_children = !empty($node_tree[$node->id]);
         echo '<li style="background:' . ($node->node_type === 'question' ? '#e0f0ff' : '#fff') . ';padding:8px;margin:4px 0;border:1px solid #ddd">';
         echo '<div style="display:flex;justify-content:space-between">';
+        echo '<div style="display:flex;align-items:flex-start">';
+        if ($has_children) {
+            echo '<button type="button" class="chatbot-node-toggle" aria-expanded="true" aria-label="Collapse" style="background:none;border:none;cursor:pointer;padding:0 6px 0 0;font-size:12px;line-height:1.4;color:#555">▼</button>';
+        }
         echo '<div><strong>' . ucfirst($node->node_type) . ':</strong> ' . esc_html($node->node_text) . '</div>';
+        echo '</div>';
         echo '<div style="display:flex;gap:4px">';
         
         echo '<form method="post" style="margin:0">';
@@ -312,7 +363,11 @@ function render_node_tree(&$node_tree, $node_paths, $all_nodes, $parent_id = 0, 
             echo '</form>';
         }
         
-        render_node_tree($node_tree, $node_paths, $all_nodes, $node->id, $depth + 1);
+        if ($has_children) {
+            echo '<div class="chatbot-node-children">';
+            render_node_tree($node_tree, $node_paths, $all_nodes, $node->id, $depth + 1);
+            echo '</div>';
+        }
         echo '</li>';
     }
     echo '</ul>';
